@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Attendance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #1a1a1f;
+      --border: #2a2a32;
+      --text: #e8e8ed;
+      --muted: #8888a0;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --success: #22c55e;
+      --unknown: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+    @media (min-width: 700px) {
+      .grid { grid-template-columns: 1fr 320px; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--muted);
+    }
+    #videoWrap {
+      position: relative;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 4/3;
+    }
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #snapshot {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    #snapshot.visible { display: block; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    #result {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      display: none;
+    }
+    #result.visible { display: block; }
+    #result.success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+    #result.unknown { background: rgba(245, 158, 11, 0.15); color: var(--unknown); }
+    #result.already { background: rgba(136, 136, 160, 0.2); color: var(--muted); }
+    .attendance-list {
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .attendance-list::-webkit-scrollbar { width: 6px; }
+    .attendance-list::-webkit-scrollbar-track { background: var(--border); border-radius: 3px; }
+    .attendance-list::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      align-items: center;
+    }
+    .row:last-child { border-bottom: none; }
+    .row .name { font-weight: 600; }
+    .row .date, .row .time { color: var(--muted); font-size: 0.85rem; }
+    .empty { color: var(--muted); padding: 1rem 0; font-size: 0.9rem; }
+    .error { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smart Attendance</h1>
+    <p class="subtitle">Use your camera to mark attendance. Add face photos in the <code>dataset</code> folder (filename = person name).</p>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Camera</h2>
+        <div id="videoWrap">
+          <video id="video" autoplay playsinline muted></video>
+          <img id="snapshot" alt="Capture" />
+        </div>
+        <button type="button" class="btn btn-primary" id="markBtn" disabled>Mark attendance</button>
+        <div id="result"></div>
+        <div id="apiError" class="error"></div>
+      </div>
+
+      <div class="card">
+        <h2>Recent attendance</h2>
+        <div class="attendance-list" id="attendanceList">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const snapshot = document.getElementById('snapshot');
+    const markBtn = document.getElementById('markBtn');
+    const resultEl = document.getElementById('result');
+    const apiError = document.getElementById('apiError');
+    const attendanceList = document.getElementById('attendanceList');
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = stream;
+        markBtn.disabled = false;
+      } catch (e) {
+        attendanceList.innerHTML = '<div class="empty">Camera access denied or unavailable.</div>';
+        markBtn.textContent = 'Camera unavailable';
+      }
+    }
+
+    function showResult(name, marked) {
+      resultEl.textContent = '';
+      resultEl.className = 'visible ';
+      apiError.textContent = '';
+      if (name === 'Unknown') {
+        resultEl.classList.add('unknown');
+        resultEl.textContent = 'Face not recognized. Add your photo to the dataset folder.';
+      } else if (marked) {
+        resultEl.classList.add('success');
+        resultEl.textContent = 'Attendance marked for ' + name;
+        loadAttendance();
+      } else {
+        resultEl.classList.add('already');
+        resultEl.textContent = name + ' — already marked today';
+        loadAttendance();
+      }
+    }
+
+    function showApiError(msg) {
+      apiError.textContent = msg;
+      resultEl.classList.remove('visible');
+    }
+
+    function captureFrame() {
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+      return canvas.toDataURL('image/jpeg', 0.92);
+    }
+
+    markBtn.addEventListener('click', async () => {
+      markBtn.disabled = true;
+      resultEl.classList.remove('visible');
+      apiError.textContent = '';
+      const dataUrl = captureFrame();
+      snapshot.src = dataUrl;
+      snapshot.classList.add('visible');
+      try {
+        const res = await fetch('/api/recognize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showApiError(data.error || 'Request failed');
+          return;
+        }
+        showResult(data.name, data.marked);
+      } catch (e) {
+        showApiError('Network error: ' + e.message);
+      } finally {
+        markBtn.disabled = false;
+        setTimeout(() => { snapshot.classList.remove('visible'); }, 800);
+      }
+    });
+
+    async function loadAttendance() {
+      try {
+        const res = await fetch('/api/attendance?limit=30');
+        const rows = await res.json();
+        if (!rows.length) {
+          attendanceList.innerHTML = '<div class="empty">No attendance records yet.</div>';
+          return;
+        }
+        attendanceList.innerHTML = rows.map(r =>
+          `<div class="row"><span class="name">${escapeHtml(r.Name)}</span><span class="date">${escapeHtml(r.Date)}</span><span class="time">${escapeHtml(r.Time)}</span></div>`
+        ).join('');
+      } catch (e) {
+        attendanceList.innerHTML = '<div class="empty">Could not load attendance.</div>';
+      }
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    startCamera();
+    loadAttendance();
+  </script>
+</body>
+</html>

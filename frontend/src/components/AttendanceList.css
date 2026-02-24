@@ -1,0 +1,48 @@
+.attendance-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.attendance-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.attendance-list::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.attendance-list::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+}
+
+.attendance-list .row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  align-items: center;
+}
+
+.attendance-list .row:last-child {
+  border-bottom: none;
+}
+
+.attendance-list .row .name {
+  font-weight: 600;
+}
+
+.attendance-list .row .date,
+.attendance-list .row .time {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.attendance-list .empty {
+  color: var(--muted);
+  padding: 1rem 0;
+  font-size: 0.9rem;
+}

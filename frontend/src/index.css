@@ -1,0 +1,30 @@
+:root {
+  --bg: #0f0f12;
+  --surface: #1a1a1f;
+  --border: #2a2a32;
+  --text: #e8e8ed;
+  --muted: #8888a0;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --success: #22c55e;
+  --unknown: #f59e0b;
+  --error: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+}

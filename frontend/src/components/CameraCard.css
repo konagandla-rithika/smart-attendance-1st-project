@@ -1,0 +1,108 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
+.video-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4/3;
+}
+
+.video-wrap .video,
+.video-wrap .snapshot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-wrap .snapshot {
+  display: none;
+}
+
+.video-wrap .snapshot.visible {
+  display: block;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: none;
+}
+
+.result.visible {
+  display: block;
+}
+
+.result.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success);
+}
+
+.result.unknown {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--unknown);
+}
+
+.result.already {
+  background: rgba(136, 136, 160, 0.2);
+  color: var(--muted);
+}
+
+.camera-card .error {
+  color: var(--error);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
